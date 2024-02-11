@@ -9,14 +9,9 @@ type APIResponse struct {
 }
 
 type Pagination struct {
-	Total        int    `json:"total"`
-	PerPage      int    `json:"per_page"`
-	CurrentPage  int    `json:"current_page"`
-	LastPage     int    `json:"last_page"`
-	FirstPage    int    `json:"first_page"`
-	FirstPageURL string `json:"first_page_url"`
-	LastPageURL  string `json:"last_page_url"`
-	NextPageURL  string `json:"next_page_url"`
-	PrevPageURL  string `json:"previous_page_url"`
-	Search       string `json:"search"`
+	Total       int `json:"total"`
+	PerPage     int `json:"per_page"`
+	CurrentPage int `json:"current_page"`
+	LastPage    int `json:"last_page"`
+	FirstPage   int `json:"first_page"`
 }
