@@ -13,19 +13,31 @@ func JSONResponse() gin.HandlerFunc {
 		c.Next()
 
 		if len(c.Errors) > 0 {
-			// If there was an error, return an API response with an error message
+			// If there was an error, construct an API response with the real error messages
+			var errors []string
+			for _, err := range c.Errors {
+				errors = append(errors, err.Error())
+			}
 			apiResponse := &models.APIResponse{
 				Success:    false,
-				Errors:     []string{c.Errors.Errors()[0]},
-				StatusCode: http.StatusInternalServerError,
+				Errors:     errors,
+				StatusCode: http.StatusInternalServerError, // Set appropriate status code for client errors
 			}
 			c.JSON(http.StatusInternalServerError, apiResponse)
+		} else if c.Keys["validate"] != nil {
+			// If there was an error in the controller, return an API response with the error message
+			apiResponse := &models.APIResponse{
+				Success:    false,
+				Errors:     []string{c.Keys["validate"].(string)},
+				StatusCode: http.StatusBadRequest, // Set appropriate status code for internal server errors
+			}
+			c.JSON(http.StatusBadRequest, apiResponse)
 		} else if c.Keys["error"] != nil {
 			// If there was an error in the controller, return an API response with the error message
 			apiResponse := &models.APIResponse{
 				Success:    false,
 				Errors:     []string{c.Keys["error"].(string)},
-				StatusCode: http.StatusInternalServerError,
+				StatusCode: http.StatusInternalServerError, // Set appropriate status code for internal server errors
 			}
 			c.JSON(http.StatusInternalServerError, apiResponse)
 		} else if c.Keys["data"] != nil {

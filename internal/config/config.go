@@ -8,6 +8,7 @@ import (
 var Config *ConfigModel
 
 type ConfigModel struct {
+	JWTKey           string
 	DatabaseHost     string
 	DatabaseUsername string
 	DatabasePassword string
@@ -18,6 +19,7 @@ type ConfigModel struct {
 func LoadConfig() {
 	// Load values from environment variables
 	Config = &ConfigModel{
+		JWTKey:           getEnv("JWT_KEY", "mykey"),
 		DatabaseHost:     getEnv("POSTGRES_HOST", ""),
 		DatabaseUsername: getEnv("POSTGRES_USERNAME", ""),
 		DatabasePassword: getEnv("POSTGRES_PASSWORD", ""),

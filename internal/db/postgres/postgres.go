@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/internal/api/models"
 	"main/internal/config"
+	"main/internal/utils"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -26,11 +27,6 @@ func ConnectDB() error {
 		return err
 	}
 
-	// Ensure database is initialized
-	if err := initializeDatabase(db); err != nil {
-		return err
-	}
-
 	DB = db
 	return nil
 }
@@ -40,7 +36,7 @@ func establishConnection(dsn string) (*gorm.DB, error) {
 	var err error
 
 	// Retry connection with a backoff mechanism
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 15; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err == nil {
 			return db, nil
@@ -52,16 +48,19 @@ func establishConnection(dsn string) (*gorm.DB, error) {
 	return nil, fmt.Errorf("failed to connect to database after multiple attempts: %v", err)
 }
 
-func initializeDatabase(db *gorm.DB) error {
+func InitializeDatabase() error {
 	// Create the database if it does not exist
 
 	// Auto-migrate the schema
-	if err := db.AutoMigrate(&models.UserInfo{}); err != nil {
+	if err := DB.AutoMigrate(
+		&models.UserInfo{},
+		&models.UserRole{},
+		&models.RoleDescription{}); err != nil {
 		return fmt.Errorf("failed to auto-migrate database schema: %v", err)
 	}
 
 	// Seed initial data if the table is empty
-	if err := seedData(db); err != nil {
+	if err := seedData(DB); err != nil {
 		return fmt.Errorf("failed to seed data: %v", err)
 	}
 
@@ -69,22 +68,73 @@ func initializeDatabase(db *gorm.DB) error {
 }
 
 func seedData(db *gorm.DB) error {
-	// var count int64
+	var count int64
+	// Check if the table is empty
+	if err := db.Model(&models.RoleDescription{}).Count(&count).Error; err != nil {
+		return err
+	}
 
-	// // Check if the table is empty
-	// if err := db.Model(&YourModel{}).Count(&count).Error; err != nil {
-	// 	return err
-	// }
+	// Insert initial data if the table is empty
+	if count == 0 {
+		err := db.Create(&models.RoleDescription{
+			RoleName:     "admin",
+			RecordStatus: "A",
+			CreateUser:   99,
+			CreateDate:   time.Now(),
+		}).Error
+		if err != nil {
+			return err
+		}
+	}
 
-	// // Insert initial data if the table is empty
-	// if count == 0 {
-	// 	// Insert initial data into the table
-	// 	// Example:
-	// 	// err := db.Create(&YourModel{Field1: "value1", Field2: "value2"}).Error
-	// 	// if err != nil {
-	// 	//     return err
-	// 	// }
-	// }
+	// Check if the table is empty
+	if err := db.Model(&models.UserInfo{}).Count(&count).Error; err != nil {
+		return err
+	}
 
+	// Insert initial data if the table is empty
+	if count == 0 {
+		salt, hashedPassword, err := utils.HashPassword("password")
+		if err != nil {
+			return err
+		}
+		// Insert initial data into the table
+		err = db.Create(&models.UserInfo{
+			UserName:     "admin",
+			Password:     string(hashedPassword),
+			Salt:         string(salt),
+			RecordStatus: "A",
+			CreateUser:   99,
+			CreateDate:   time.Now(),
+		}).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check if the table is empty
+	if err := db.Model(&models.UserRole{}).Count(&count).Error; err != nil {
+		return err
+	}
+
+	// Insert initial data if the table is empty
+	if count == 0 {
+		// Insert initial data into the table
+		// Retrieve the auto-generated ID after creating the record
+		var user models.UserInfo
+		var role models.RoleDescription
+		if err := db.Where("user_name = ?", "admin").First(&user).Error; err != nil {
+			return err
+		}
+		if err := db.Where("role_name = ?", "admin").First(&role).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.UserRole{
+			UserID: user.ID,
+			RoleID: role.ID,
+		}).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
