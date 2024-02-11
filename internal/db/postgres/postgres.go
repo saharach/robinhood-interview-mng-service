@@ -94,7 +94,7 @@ func seedData(db *gorm.DB) error {
 
 	// Insert initial data if the table is empty
 	if count == 0 {
-		hashedPassword, salt, err := utils.HashPassword("password")
+		salt, hashedPassword, err := utils.HashPassword("password")
 		if err != nil {
 			return err
 		}
