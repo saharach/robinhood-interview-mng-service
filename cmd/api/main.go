@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"main/internal/api/middleware"
 	"main/internal/api/routes"
 	"main/internal/config"
@@ -14,7 +15,16 @@ func main() {
 	config.LoadConfig()
 
 	// Connect to the database
-	postgres.ConnectDB()
+
+	if err := postgres.ConnectDB(); err != nil {
+		fmt.Println("Failed to connect to the database:", err)
+		return
+	}
+
+	if err := postgres.InitializeDatabase(); err != nil {
+		fmt.Println("Failed to initialize the database:", err)
+		return
+	}
 
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware())
