@@ -16,3 +16,7 @@
 
 # Output directory
 /bin/
+
+# Additional
+postgresql/data
+.vscode
