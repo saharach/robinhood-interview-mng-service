@@ -7,11 +7,16 @@ type APIResponse struct {
 	Errors     []string    `json:"errors,omitempty"`
 	StatusCode int         `json:"statusCode"`
 }
+type LoginResponse struct {
+	Success    bool   `json:"success"`
+	Token      string `json:"token"`
+	StatusCode int    `json:"statusCode"`
+}
 
 type Pagination struct {
-	Total       int `json:"total"`
-	PerPage     int `json:"per_page"`
-	CurrentPage int `json:"current_page"`
-	LastPage    int `json:"last_page"`
-	FirstPage   int `json:"first_page"`
+	Total       int64 `json:"total"`
+	PerPage     int   `json:"per_page"`
+	CurrentPage int   `json:"current_page"`
+	LastPage    int64 `json:"last_page"`
+	FirstPage   int   `json:"first_page"`
 }

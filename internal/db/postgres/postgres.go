@@ -55,7 +55,11 @@ func InitializeDatabase() error {
 	if err := DB.AutoMigrate(
 		&models.UserInfo{},
 		&models.UserRole{},
-		&models.RoleDescription{}); err != nil {
+		&models.RoleDescription{},
+		&models.Interview{},
+		&models.InterviewComment{},
+		&models.InterviewLog{},
+		&models.StatusDescription{}); err != nil {
 		return fmt.Errorf("failed to auto-migrate database schema: %v", err)
 	}
 
@@ -69,6 +73,35 @@ func InitializeDatabase() error {
 
 func seedData(db *gorm.DB) error {
 	var count int64
+
+	defaultSchema := models.DefaultSchema{
+		RecordStatus: "A",
+		CreateUser:   99,
+		CreateDate:   time.Now(),
+	}
+	// Check if the table is empty
+	if err := db.Model(&models.StatusDescription{}).Count(&count).Error; err != nil {
+		return err
+	}
+
+	// Insert initial data if the table is empty
+	if count == 0 {
+		datas := []*models.StatusDescription{
+			{Param: "record_status", Key: "A", Description: "Active", DefaultSchema: defaultSchema},
+			{Param: "record_status", Key: "I", Description: "Inctive", DefaultSchema: defaultSchema},
+			{Param: "record_status", Key: "P", Description: "Archive", DefaultSchema: defaultSchema},
+			{Param: "status", Key: "T", Description: "To do", DefaultSchema: defaultSchema},
+			{Param: "status", Key: "I", Description: "In progres", DefaultSchema: defaultSchema},
+			{Param: "status", Key: "D", Description: "Done", DefaultSchema: defaultSchema},
+		}
+		for _, data := range datas {
+			err := db.Create(data).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	// Check if the table is empty
 	if err := db.Model(&models.RoleDescription{}).Count(&count).Error; err != nil {
 		return err
@@ -76,14 +109,15 @@ func seedData(db *gorm.DB) error {
 
 	// Insert initial data if the table is empty
 	if count == 0 {
-		err := db.Create(&models.RoleDescription{
-			RoleName:     "admin",
-			RecordStatus: "A",
-			CreateUser:   99,
-			CreateDate:   time.Now(),
-		}).Error
-		if err != nil {
-			return err
+		datas := []*models.RoleDescription{
+			{RoleName: "admin", DefaultSchema: defaultSchema},
+			{RoleName: "user", DefaultSchema: defaultSchema},
+		}
+		for _, data := range datas {
+			err := db.Create(data).Error
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -92,23 +126,26 @@ func seedData(db *gorm.DB) error {
 		return err
 	}
 
+	userDatas := []*models.UserInfo{
+		{UserName: "admin", Email: "admin@robihood.co.th", FirstName: "Robinhood", LastName: "Admin", DefaultSchema: defaultSchema},
+		{UserName: "user1", Email: "user1@robihood.co.th", FirstName: "User1", LastName: "", DefaultSchema: defaultSchema},
+		{UserName: "user2", Email: "user2@robihood.co.th", FirstName: "User2", LastName: "", DefaultSchema: defaultSchema},
+	}
 	// Insert initial data if the table is empty
 	if count == 0 {
-		salt, hashedPassword, err := utils.HashPassword("password")
-		if err != nil {
-			return err
-		}
-		// Insert initial data into the table
-		err = db.Create(&models.UserInfo{
-			UserName:     "admin",
-			Password:     string(hashedPassword),
-			Salt:         string(salt),
-			RecordStatus: "A",
-			CreateUser:   99,
-			CreateDate:   time.Now(),
-		}).Error
-		if err != nil {
-			return err
+
+		for _, data := range userDatas {
+			// Fix all user password at initial
+			salt, hashedPassword, err := utils.HashPassword("password")
+			if err != nil {
+				return err
+			}
+			data.Password = string(hashedPassword)
+			data.Salt = string(salt)
+			err = db.Create(data).Error
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -116,24 +153,28 @@ func seedData(db *gorm.DB) error {
 	if err := db.Model(&models.UserRole{}).Count(&count).Error; err != nil {
 		return err
 	}
-
 	// Insert initial data if the table is empty
 	if count == 0 {
-		// Insert initial data into the table
-		// Retrieve the auto-generated ID after creating the record
-		var user models.UserInfo
-		var role models.RoleDescription
-		if err := db.Where("user_name = ?", "admin").First(&user).Error; err != nil {
-			return err
-		}
-		if err := db.Where("role_name = ?", "admin").First(&role).Error; err != nil {
-			return err
-		}
-		if err := db.Create(&models.UserRole{
-			UserID: user.ID,
-			RoleID: role.ID,
-		}).Error; err != nil {
-			return err
+		for _, data := range userDatas {
+			var user models.UserInfo
+			var role models.RoleDescription
+			if err := db.Where("user_name = ?", data.UserName).First(&user).Error; err != nil {
+				return err
+			}
+			role_name := "user"
+			if data.UserName == "admin" {
+				role_name = "admin"
+			}
+			if err := db.Where("role_name = ?", role_name).First(&role).Error; err != nil {
+				return err
+			}
+			if err := db.Create(&models.UserRole{
+				UserID:        user.ID,
+				RoleID:        role.ID,
+				DefaultSchema: defaultSchema,
+			}).Error; err != nil {
+				return err
+			}
 		}
 	}
 	return nil

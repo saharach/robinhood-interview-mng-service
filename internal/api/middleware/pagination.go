@@ -14,12 +14,11 @@ func SetPaginationData() gin.HandlerFunc {
 		currentPage, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 		perPage, _ := strconv.Atoi(c.DefaultQuery("per_page", "10"))
 
-		pagination := &models.Pagination{}
-		// Update the pagination struct with the new values
-		pagination.PerPage = perPage
-		pagination.CurrentPage = currentPage
-
-		pagination.FirstPage = 1
+		pagination := &models.Pagination{
+			PerPage:     perPage,
+			CurrentPage: currentPage,
+			FirstPage:   1,
+		}
 
 		// Set the pagination struct in the context for the controller to use
 		c.Set("pagination", pagination)
@@ -27,6 +26,6 @@ func SetPaginationData() gin.HandlerFunc {
 		// Call the next middleware function
 		c.Next()
 
-		pagination.LastPage = int(math.Ceil(float64(pagination.Total) / float64(perPage)))
+		pagination.LastPage = int64(math.Ceil(float64(pagination.Total) / float64(perPage)))
 	}
 }

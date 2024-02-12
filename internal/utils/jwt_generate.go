@@ -12,10 +12,11 @@ import (
 )
 
 // GenerateToken generates a JWT token with the provided username
-func GenerateToken(username string) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
+func GenerateToken(user models.UserInfo) (string, error) {
+	expirationTime := time.Now().Add(60 * time.Minute)
 	claims := &models.Claims{
-		Username: username,
+		UserId:   user.ID,
+		Username: user.UserName,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

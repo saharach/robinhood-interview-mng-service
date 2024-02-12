@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -52,7 +53,7 @@ func ComparePasswordHash(password, hashedPasswordBase64, saltBase64 string) erro
 
 	// Compare the provided password with the stored hashed password
 	if err := bcrypt.CompareHashAndPassword(hashedPassword, passwordWithSalt); err != nil {
-		return err
+		return errors.New("Not match")
 	}
 
 	return nil
