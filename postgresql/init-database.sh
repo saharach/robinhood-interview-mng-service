@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "1111111"
 
 SQL_CONTENT=$(cat <<EOF
 CREATE DATABASE $POSTGRES_DBNAME;
