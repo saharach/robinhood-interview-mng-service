@@ -9,6 +9,11 @@ Current features of the API include:
 2. Rate limit
 3. Manage interviews
 
+## Getting Started
+
+For detailed instructions on getting started with service, please refer to the [Getting Started](./docs/getting-started.md) guide.
+
+
 ## Usage
 
 
@@ -55,7 +60,3 @@ Then, test service via Postman  [http://0.0.0.0:8080/](http://0.0.0.0:8080/)
 ```sh
 $ docker-compose down -v
 ```
-
-## Tutorials
-
-We provide a set of [tutorials](./docs/tutorial.md) to guide users to achieve certain tasks.
