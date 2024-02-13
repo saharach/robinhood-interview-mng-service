@@ -8,6 +8,8 @@ import (
 var Config *ConfigModel
 
 type ConfigModel struct {
+	RateLimit        int
+	RateLimitTime    int
 	JWTKey           string
 	DatabaseHost     string
 	DatabaseUsername string
@@ -19,6 +21,8 @@ type ConfigModel struct {
 func LoadConfig() {
 	// Load values from environment variables
 	Config = &ConfigModel{
+		RateLimit:        getEnvAsInt("RATE_LIMIT", 2),
+		RateLimitTime:    getEnvAsInt("RATE_LIMIT_TIME", 1),
 		JWTKey:           getEnv("JWT_KEY", "mykey"),
 		DatabaseHost:     getEnv("POSTGRES_HOST", ""),
 		DatabaseUsername: getEnv("POSTGRES_USERNAME", ""),
