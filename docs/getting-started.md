@@ -88,6 +88,38 @@ Then, test service via Postman  [http://0.0.0.0:8080/](http://0.0.0.0:8080/)
 ```sh
 $ docker-compose down -v
 ```
+## Troubleshooting Docker Start Error
+
+If you encounter errors when starting Docker containers due to permission issues, you can resolve them by adjusting the file permissions using the `chmod` command.
+
+### Fixing Permissions
+
+1. **Identify the problematic file**: 
+   - Determine which file or directory is causing the permission error.
+
+2. **Adjust permissions using `chmod`**:
+   - Open a terminal or command prompt.
+
+   - Run the following command to give read, write, and execute permissions to the file:
+     ```sh
+     chmod +x /path/to/your/file
+     ```
+
+   Replace `/path/to/your/file` with the path to the file or directory causing the permission error.
+
+3. **Restart Docker containers**:
+   - After adjusting the permissions, restart your Docker containers to apply the changes:
+     ```sh
+     docker-compose restart
+     ```
+
+### Example
+If you encounter a permission error with the `init-database.sh` script, you can fix it by running:
+```sh
+chmod +x ./postgresql/init-database.sh
+```
+
+
 ## Initial User Credentials
 
 To access the API for the first time, you'll need to use the initial user credentials provided below:
