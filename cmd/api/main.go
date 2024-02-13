@@ -6,6 +6,7 @@ import (
 	"main/internal/api/routes"
 	"main/internal/config"
 	"main/internal/db/postgres"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,11 @@ func main() {
 
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware())
-	// r.Use(middleware.AuthMiddleware())
+
+	limiter := middleware.NewIPRateLimiter()
+
+	// Apply rate limiting middleware to all routes.
+	r.Use(limiter.RateLimitMiddleware(config.Config.RateLimit, time.Duration(config.Config.RateLimitTime)*time.Minute))
 
 	r.Use(middleware.JSONResponse())
 	r.Use(middleware.SetPaginationData())
